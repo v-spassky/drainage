@@ -28,15 +28,13 @@ jobs:
         poetry install
 
     - name: Test
-      run: |
-        poetry shell
-        poe test
+      run: poetry run poe test
 
     - name: Report test coverage
-      run: poe coverage
+      run: poetry run poe coverage
 
     - name: Lint
-      run: poe lint
+      run: poetry run poe lint
 
     - name: Typecheck
-      run: poe typecheck
+      run: poetry run poe typecheck
