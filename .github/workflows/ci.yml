@@ -26,10 +26,11 @@ jobs:
       run: |
         pip install poetry
         poetry install
-        poetry shell
 
     - name: Test
-      run: poe test
+      run: |
+        poetry shell
+        poe test
 
     - name: Report test coverage
       run: poe coverage
