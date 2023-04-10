@@ -23,6 +23,7 @@ test = "coverage run -m pytest tests/tests.py"
 coverage = ["_covreport", "_covhtml"]
 lint = "pylint drainage/lib.py"
 typecheck = "mypy drainage/lib.py"
+check-all = ["test", "coverage", "lint", "typecheck"]
 doc = "pdoc3 --html drainage --force"
 _covreport = "coverage report -m"
 _covhtml = "coverage html"
