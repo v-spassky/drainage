@@ -1,5 +1,5 @@
 """
-...
+This module contains test suite for the `drainage` package.
 """
 
 
@@ -131,7 +131,7 @@ def test_filtered_decorated_functions_work_the_same():
     assert starts_with_a("orange") is False
 
 
-def test_pipe_operator():
+def test_piped_decorator():
     """
     Ensures that functions decorated with `@piped` can be chained
     together using the `|` operator and that the result can be collected
@@ -149,7 +149,7 @@ def test_pipe_operator():
     assert reversed_words == ["olleH", "dlroW"]
 
 
-def test_filter_operator():
+def test_filtered_decorator():
     """
     Ensures that functions decorated with `@filtered` can be chained
     together using the `|` operator and that the result can be collected
