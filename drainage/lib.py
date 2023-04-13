@@ -27,6 +27,9 @@ class BaseWrapper:
     ) -> Any:
         return self.func(*args, **kwargs)
 
+    def __repr__(self: Self) -> str:
+        return f'{self.__class__.__name__}(func={self.func.__name__})'
+
     @abstractmethod
     def __ror__(self: Self, other: Iterable[Any]) -> Any:
         ...
@@ -65,7 +68,7 @@ class FilteredWrapper(BaseWrapper):
                 yield item
 
 
-class PipedCollector:
+class Collector:
     """
     A class representing the collector in the pipe (|) operator chain.
 
@@ -74,6 +77,9 @@ class PipedCollector:
     """
 
     # pylint: disable=too-few-public-methods
+
+    def __repr__(self: Self) -> str:
+        return 'Collector()'
 
     def __ror__(self: Self, other: Iterable[Any]) -> list[Any]:
         return list(other)
@@ -90,6 +96,9 @@ class Taker:
 
     def __init__(self: Self, number_of_items: int):
         self.number_of_items = number_of_items
+
+    def __repr__(self: Self) -> str:
+        return f'Taker(number_of_items={self.number_of_items})'
 
     def __ror__(self: Self, iterable: Iterable[Any]) -> Iterable[Any]:
         for i, item in enumerate(iterable):
@@ -126,15 +135,15 @@ def filtered(func: Callable[[Any], Any]) -> FilteredWrapper:
     return FilteredWrapper(func)
 
 
-def collect() -> PipedCollector:
+def collect() -> Collector:
     """
-    A function that creates and returns a PipedCollector instance.
+    A function that creates and returns a Collector instance.
 
     Returns:
-        PipedCollector: A new PipedCollector instance.
+        Collector: A new Collector instance.
     """
 
-    return PipedCollector()
+    return Collector()
 
 
 def take(number_of_items: int) -> Taker:

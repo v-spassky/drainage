@@ -209,3 +209,25 @@ def test_take_function():
         | collect()
     )
     assert first_two_gt_5 == ["banana", "cherry"]
+
+
+def test_string_representation_of_wrappers():
+    """
+    Ensures that the string representation of wrapper classes is correct.
+    """
+
+    assert str(add_one) == 'PipedWrapper(func=add_one)'
+    assert repr(add_one) == 'PipedWrapper(func=add_one)'
+    assert format(add_one) == 'PipedWrapper(func=add_one)'
+
+    assert str(is_even) == 'FilteredWrapper(func=is_even)'
+    assert repr(is_even) == 'FilteredWrapper(func=is_even)'
+    assert format(is_even) == 'FilteredWrapper(func=is_even)'
+
+    assert str(collect()) == 'Collector()'
+    assert repr(collect()) == 'Collector()'
+    assert format(collect()) == 'Collector()'
+
+    assert str(take(3)) == 'Taker(number_of_items=3)'
+    assert repr(take(3)) == 'Taker(number_of_items=3)'
+    assert format(take(3)) == 'Taker(number_of_items=3)'
