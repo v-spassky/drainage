@@ -3,7 +3,7 @@ This module contains test suite for the `drainage` package.
 """
 
 
-from drainage import collect, filtered, piped
+from drainage import collect, filtered, piped, take
 
 
 @piped
@@ -133,9 +133,8 @@ def test_filtered_decorated_functions_work_the_same():
 
 def test_piped_decorator():
     """
-    Ensures that functions decorated with `@piped` can be chained
-    together using the `|` operator and that the result can be collected
-    into a list using the `collect()` function.
+    Ensures that functions decorated with `@piped`
+    can be used in pipe expressions.
     """
 
     assert [1, 3, 4] | add_one | add_one | collect() == [3, 5, 6]
@@ -151,9 +150,8 @@ def test_piped_decorator():
 
 def test_filtered_decorator():
     """
-    Ensures that functions decorated with `@filtered` can be chained
-    together using the `|` operator and that the result can be collected
-    into a list using the `collect()` function.
+    Ensures that functions decorated with `@filtered`
+    can be used in pipe expressions.
     """
 
     assert [1, 2, 3, 4] | is_even | collect() == [2, 4]
@@ -173,3 +171,41 @@ def test_filtered_decorator():
         | collect()
     )
     assert starts_with_a_letter == ["apple", "avocado"]
+
+
+def test_take_function():
+    """
+    Ensures that the `take()` function works correctly in pipe expressions.
+    """
+
+    first_three_evens = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | is_even
+        | take(3)
+        | collect()
+     )
+    assert first_three_evens == [2, 4, 6]
+
+    first_four_squares = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | square
+        | take(4)
+        | collect()
+     )
+    assert first_four_squares == [1, 4, 9, 16]
+
+    first_with_a = (
+        ["apple", "banana", "cherry", "avocado", "grape", "orange"]
+        | starts_with_a
+        | take(1)
+        | collect()
+    )
+    assert first_with_a == ["apple"]
+
+    first_two_gt_5 = (
+        ["apple", "banana", "cherry", "avocado", "grape", "orange"]
+        | has_length_greater_than_five
+        | take(2)
+        | collect()
+    )
+    assert first_two_gt_5 == ["banana", "cherry"]

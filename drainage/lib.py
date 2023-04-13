@@ -4,41 +4,17 @@ that implement the pipe (|) functionality.
 """
 
 
+from abc import abstractmethod
 from typing import Any, Callable, Iterable, Hashable
 from typing_extensions import Self
 
 
-class PipedWrapper:
+class BaseWrapper:
     """
-    A wrapper class for functions that
-    can be used with the pipe (|) operator.
+    A base class for wrapper classes that implement the pipe (|) functionality.
 
-    Attributes:
-        func (callable): The wrapped function.
-    """
-
-    def __init__(self, func: Callable[[Any], Any]):
-        self.func = func
-
-    def __call__(
-        self: Self,
-        *args: tuple[Any],
-        **kwargs: dict[Hashable, Any],
-    ) -> Any:
-        return self.func(*args, **kwargs)
-
-    def __ror__(self: Self, other: Iterable[Any]) -> Any:
-        for item in other:
-            yield self.func(item)
-
-
-class FilteredWrapper:
-    """
-    A wrapper class for filter functions that
-    can be used with the pipe (|) operator.
-
-    Attributes:
-        func (callable): The wrapped filter function.
+    This class should not be instantiated directly, but rather be subclassed
+    by other wrapper classes.
     """
 
     def __init__(self: Self, func: Callable[[Any], Any]):
@@ -50,6 +26,38 @@ class FilteredWrapper:
         **kwargs: dict[Hashable, Any],
     ) -> Any:
         return self.func(*args, **kwargs)
+
+    @abstractmethod
+    def __ror__(self: Self, other: Iterable[Any]) -> Any:
+        ...
+
+
+class PipedWrapper(BaseWrapper):
+    """
+    A wrapper class for functions that
+    can be used with the pipe (|) operator.
+
+    Attributes:
+        func (callable): The wrapped function.
+    """
+
+    # pylint: disable=too-few-public-methods
+
+    def __ror__(self: Self, other: Iterable[Any]) -> Any:
+        for item in other:
+            yield self.func(item)
+
+
+class FilteredWrapper(BaseWrapper):
+    """
+    A wrapper class for filter functions that
+    can be used with the pipe (|) operator.
+
+    Attributes:
+        func (callable): The wrapped filter function.
+    """
+
+    # pylint: disable=too-few-public-methods
 
     def __ror__(self, other: Iterable[Any]) -> Any:
         for item in other:
@@ -69,6 +77,25 @@ class PipedCollector:
 
     def __ror__(self: Self, other: Iterable[Any]) -> list[Any]:
         return list(other)
+
+
+class Taker:
+    """
+    A class that takes a specified number of items from an input iterable.
+
+    Attributes:
+        number_of_items (int): The number of items to
+        take from the input iterable.
+    """
+
+    def __init__(self: Self, number_of_items: int):
+        self.number_of_items = number_of_items
+
+    def __ror__(self: Self, iterable: Iterable[Any]) -> Iterable[Any]:
+        for i, item in enumerate(iterable):
+            if i >= self.number_of_items:
+                break
+            yield item
 
 
 def piped(func: Callable[[Any], Any]) -> PipedWrapper:
@@ -108,3 +135,18 @@ def collect() -> PipedCollector:
     """
 
     return PipedCollector()
+
+
+def take(number_of_items: int) -> Taker:
+    """
+    A function that creates and returns a Taker instance.
+
+    Args:
+        number_of_items (int): The number of items to take from
+        the input iterable.
+
+    Returns:
+        Taker: A new Taker instance.
+    """
+
+    return Taker(number_of_items)
