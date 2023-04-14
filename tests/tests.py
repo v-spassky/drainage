@@ -3,7 +3,7 @@ This module contains test suite for the `drainage` package.
 """
 
 
-from drainage import collect, filtered, piped, take
+from drainage import collect, filtered, piped, reduced, take
 
 
 @piped
@@ -173,6 +173,46 @@ def test_filtered_decorator():
     assert starts_with_a_letter == ["apple", "avocado"]
 
 
+def test_reduced_function():
+    """
+    Ensures that the `reduced()` function works correctly in pipe expressions.
+    """
+
+    sum_of_evens = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | is_even
+        | reduced(lambda acc, num: acc + num)
+    )
+    assert sum_of_evens == 30
+
+    sum_of_squares = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | square
+        | reduced(lambda acc, num: acc + num)
+    )
+    assert sum_of_squares == 385
+
+    sum_of_lengths = (
+        ["apple", "banana", "cherry", "avocado", "grape"]
+        | reduced(lambda acc, word: acc + len(word))
+    )
+    assert sum_of_lengths == len("apple" "banana" "cherry" "avocado" "grape")
+
+    product_of_evens = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | is_even
+        | reduced(lambda acc, num: acc * num, acc=1) # notice the `acc`
+    )
+    assert product_of_evens == 2 * 4 * 6 * 8 * 10
+
+    product_of_squares = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | square
+        | reduced(lambda acc, num: acc * num, acc=1) # notice the `acc`
+    )
+    assert product_of_squares == 1 * 4 * 9 * 16 * 25 * 36 * 49 * 64 * 81 * 100
+
+
 def test_take_function():
     """
     Ensures that the `take()` function works correctly in pipe expressions.
@@ -223,6 +263,13 @@ def test_string_representation_of_wrappers():
     assert str(is_even) == 'FilteredWrapper(func=is_even)'
     assert repr(is_even) == 'FilteredWrapper(func=is_even)'
     assert format(is_even) == 'FilteredWrapper(func=is_even)'
+
+    reducer_str = str(reduced(lambda acc, next: acc + next))
+    assert reducer_str == 'Reducer(func=<lambda>, acc=0)'
+    reducer_repr = repr(reduced(lambda acc, next: acc + next))
+    assert reducer_repr == 'Reducer(func=<lambda>, acc=0)'
+    reducer_format = format(reduced(lambda acc, next: acc + next))
+    assert reducer_format == 'Reducer(func=<lambda>, acc=0)'
 
     assert str(collect()) == 'Collector()'
     assert repr(collect()) == 'Collector()'

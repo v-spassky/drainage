@@ -20,4 +20,4 @@ Example:
     [2, 4]
 """
 
-from .lib import collect, filtered, piped, take
+from .lib import collect, filtered, piped, reduced, take

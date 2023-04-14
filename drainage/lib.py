@@ -4,12 +4,12 @@ that implement the pipe (|) functionality.
 """
 
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterable, Hashable
 from typing_extensions import Self
 
 
-class BaseWrapper:
+class BaseWrapper(ABC):
     """
     A base class for wrapper classes that implement the pipe (|) functionality.
 
@@ -31,8 +31,7 @@ class BaseWrapper:
         return f'{self.__class__.__name__}(func={self.func.__name__})'
 
     @abstractmethod
-    def __ror__(self: Self, other: Iterable[Any]) -> Any:
-        ...
+    def __ror__(self: Self, other: Iterable[Any]) -> Any: ...
 
 
 class PipedWrapper(BaseWrapper):
@@ -68,6 +67,28 @@ class FilteredWrapper(BaseWrapper):
                 yield item
 
 
+class Reducer:
+    """
+    A wrapper class for reduce functions that
+    can be used with the pipe (|) operator.
+
+    Attributes:
+        func (callable): The wrapped reduce function.
+    """
+
+    def __init__(self: Self, func: Callable[[Any, Any], Any], acc: Any):
+        self.acc = acc
+        self.func = func
+
+    def __repr__(self: Self) -> str:
+        return f'Reducer(func={self.func.__name__}, acc={self.acc})'
+
+    def __ror__(self: Self, other: Iterable[Any]) -> Any:
+        for item in other:
+            self.acc = self.func(self.acc, item)
+        return self.acc
+
+
 class Collector:
     """
     A class representing the collector in the pipe (|) operator chain.
@@ -75,8 +96,6 @@ class Collector:
     This class collects the results of piped
     operations and returns them as a list.
     """
-
-    # pylint: disable=too-few-public-methods
 
     def __repr__(self: Self) -> str:
         return 'Collector()'
@@ -133,6 +152,18 @@ def filtered(func: Callable[[Any], Any]) -> FilteredWrapper:
     """
 
     return FilteredWrapper(func)
+
+
+def reduced(func: Callable[[Any, Any], Any], acc: Any = 0) -> Reducer:
+    """
+    A decorator that wraps a reduce function with the ReducedWrapper class.
+
+    Args:
+        func (Callable[[Any, Any], Any]): The reduce function to be wrapped.
+        acc (Any): The initial value of the accumulator.
+    """
+
+    return Reducer(func, acc)
 
 
 def collect() -> Collector:
