@@ -5,11 +5,16 @@ that implement the pipe (|) functionality.
 
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterable, Hashable
+from typing import Any, Callable, Dict, Iterable, Hashable, Tuple
 from typing_extensions import Self
 
 
-class BaseWrapper(ABC):
+ArgTuple = Tuple[Any]
+KwargDict = Dict[Hashable, Any]
+CollectionConstructor = Callable[[Iterable[Any]], Iterable[Any]]
+
+
+class BaseIntermediaryWrapper(ABC):
     """
     A base class for wrapper classes that implement the pipe (|) functionality.
 
@@ -20,11 +25,7 @@ class BaseWrapper(ABC):
     def __init__(self: Self, func: Callable[[Any], Any]):
         self.func = func
 
-    def __call__(
-        self: Self,
-        *args: tuple[Any],
-        **kwargs: dict[Hashable, Any],
-    ) -> Any:
+    def __call__(self: Self, *args: ArgTuple, **kwargs: KwargDict) -> Any:
         return self.func(*args, **kwargs)
 
     def __repr__(self: Self) -> str:
@@ -34,7 +35,25 @@ class BaseWrapper(ABC):
     def __ror__(self: Self, other: Iterable[Any]) -> Any: ...
 
 
-class PipedWrapper(BaseWrapper):
+class BaseTailWrapper(ABC):
+    """
+    A base class for wrapper classes that implement the pipe (|) functionality.
+
+    This class should not be instantiated directly, but rather be subclassed
+    by other wrapper classes.
+    """
+
+    @abstractmethod
+    def __init__(self: Self, *args: ArgTuple, **kwargs: KwargDict): ...
+
+    @abstractmethod
+    def __repr__(self: Self) -> str: ...
+
+    @abstractmethod
+    def __ror__(self: Self, other: Iterable[Any]) -> Any: ...
+
+
+class PipedWrapper(BaseIntermediaryWrapper):
     """
     A wrapper class for functions that
     can be used with the pipe (|) operator.
@@ -50,7 +69,7 @@ class PipedWrapper(BaseWrapper):
             yield self.func(item)
 
 
-class FilteredWrapper(BaseWrapper):
+class FilteredWrapper(BaseIntermediaryWrapper):
     """
     A wrapper class for filter functions that
     can be used with the pipe (|) operator.
@@ -67,7 +86,7 @@ class FilteredWrapper(BaseWrapper):
                 yield item
 
 
-class Reducer:
+class Reducer(BaseTailWrapper):
     """
     A wrapper class for reduce functions that
     can be used with the pipe (|) operator.
@@ -89,7 +108,7 @@ class Reducer:
         return self.acc
 
 
-class Collector:
+class Collector(BaseTailWrapper):
     """
     A class representing the collector in the pipe (|) operator chain.
 
@@ -97,11 +116,14 @@ class Collector:
     operations and returns them as a list.
     """
 
-    def __repr__(self: Self) -> str:
-        return 'Collector()'
+    def __init__(self: Self, constructor: CollectionConstructor = list):
+        self.constructor = constructor
 
-    def __ror__(self: Self, other: Iterable[Any]) -> list[Any]:
-        return list(other)
+    def __repr__(self: Self) -> str:
+        return f'Collector(constructor={self.constructor.__name__})'
+
+    def __ror__(self: Self, other: Iterable[Any]) -> Iterable[Any]:
+        return self.constructor(other)
 
 
 class Taker:
@@ -166,7 +188,7 @@ def reduced(func: Callable[[Any, Any], Any], acc: Any = 0) -> Reducer:
     return Reducer(func, acc)
 
 
-def collect() -> Collector:
+def collect(constructor: CollectionConstructor = list) -> Collector:
     """
     A function that creates and returns a Collector instance.
 
@@ -174,7 +196,7 @@ def collect() -> Collector:
         Collector: A new Collector instance.
     """
 
-    return Collector()
+    return Collector(constructor)
 
 
 def take(number_of_items: int) -> Taker:

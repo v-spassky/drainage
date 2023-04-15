@@ -213,6 +213,40 @@ def test_reduced_function():
     assert product_of_squares == 1 * 4 * 9 * 16 * 25 * 36 * 49 * 64 * 81 * 100
 
 
+def test_collect_function():
+    """
+    Ensures that the `collect()` function works correctly in pipe expressions.
+    """
+
+    evens = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | is_even
+        | collect()
+     )
+    assert evens == [2, 4, 6, 8, 10]
+
+    squares = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | square
+        | collect()
+     )
+    assert squares == [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+
+    squares_tuple = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | square
+        | collect(constructor=tuple)
+    )
+    assert squares_tuple == (1, 4, 9, 16, 25, 36, 49, 64, 81, 100)
+
+    unique_words_starting_with_a = (
+        ["apple", "banana", "cherry", "banana", "avocado", "grape", "apple"]
+        | starts_with_a
+        | collect(constructor=set)
+     )
+    assert unique_words_starting_with_a == {"apple", "avocado"}
+
+
 def test_take_function():
     """
     Ensures that the `take()` function works correctly in pipe expressions.
@@ -271,9 +305,9 @@ def test_string_representation_of_wrappers():
     reducer_format = format(reduced(lambda acc, next: acc + next))
     assert reducer_format == 'Reducer(func=<lambda>, acc=0)'
 
-    assert str(collect()) == 'Collector()'
-    assert repr(collect()) == 'Collector()'
-    assert format(collect()) == 'Collector()'
+    assert str(collect()) == 'Collector(constructor=list)'
+    assert repr(collect()) == 'Collector(constructor=list)'
+    assert format(collect()) == 'Collector(constructor=list)'
 
     assert str(take(3)) == 'Taker(number_of_items=3)'
     assert repr(take(3)) == 'Taker(number_of_items=3)'
