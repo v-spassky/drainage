@@ -86,6 +86,59 @@ class FilteredWrapper(BaseIntermediaryWrapper):
                 yield item
 
 
+class Slicer:
+    """
+    A wrapper class for slice functions that
+    can be used with the pipe (|) operator.
+
+    Attributes:
+        start (int): The start index of the slice.
+        stop (int): The stop index of the slice.
+        step (int): The step size of the slice.
+    """
+
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self: Self, start: int, stop: int, step: int):
+        self.start = start or 0
+        self.stop = stop or 0
+        self.step = step or 1
+
+    def __repr__(self: Self) -> str:
+        return (
+            'Slicer('
+                f'start={self.start}, '
+                f'stop={self.stop}, '
+                f'step={self.step}'
+            ')'
+        )
+
+    def __ror__(self: Self, other: Iterable[Any]) -> Any:
+        for i, item in enumerate(other):
+            if i >= self.stop:
+                break
+            if i >= self.start and i % self.step == 0:
+                yield item
+
+
+class SubscriptableFunction:
+    """
+    A function decorator that turns a target function into an object
+    that returns a `Slicer` instance when sliced.
+
+    Attributes:
+        _func (callable): target function.
+    """
+
+    # pylint: disable=too-few-public-methods
+
+    def __init__(self: Self, func: Callable[[], None]):
+        self._func = func
+
+    def __getitem__(self: Self, target_slice: slice) -> Slicer:
+        return Slicer(target_slice.start, target_slice.stop, target_slice.step)
+
+
 class Reducer(BaseTailWrapper):
     """
     A wrapper class for reduce functions that
@@ -174,6 +227,18 @@ def filtered(func: Callable[[Any], Any]) -> FilteredWrapper:
     """
 
     return FilteredWrapper(func)
+
+
+@SubscriptableFunction
+def sliced() -> None:
+    """
+    A function to slice the incoming pipe stream.
+
+    Is effectively a syntactic sugar to be wrapped with the
+    `@SubscriptableFunction` decorator which implements slicing so that
+    we do not have to use pascal-cased class in a pipe expression
+    where everything else is a snake-cased function.
+    """
 
 
 def reduced(func: Callable[[Any, Any], Any], acc: Any = 0) -> Reducer:

@@ -3,7 +3,7 @@ This module contains test suite for the `drainage` package.
 """
 
 
-from drainage import collect, filtered, piped, reduced, take
+from drainage import collect, filtered, piped, reduced, sliced, take
 
 
 @piped
@@ -173,6 +173,28 @@ def test_filtered_decorator():
     assert starts_with_a_letter == ["apple", "avocado"]
 
 
+def test_sliced_function():
+    """
+    Ensures that the `sliced()` function works correctly in pipe expressions.
+    """
+
+    first_three_evens = (
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        | is_even
+        | sliced[:3]
+        | collect()
+     )
+    assert first_three_evens == [2, 4, 6]
+
+    first_two_longer_than_five = (
+        ["apple", "banana", "cherry", "avocado", "grape"]
+        | has_length_greater_than_five
+        | sliced[:2]
+        | collect()
+    )
+    assert first_two_longer_than_five == ["banana", "cherry"]
+
+
 def test_reduced_function():
     """
     Ensures that the `reduced()` function works correctly in pipe expressions.
@@ -297,6 +319,10 @@ def test_string_representation_of_wrappers():
     assert str(is_even) == 'FilteredWrapper(func=is_even)'
     assert repr(is_even) == 'FilteredWrapper(func=is_even)'
     assert format(is_even) == 'FilteredWrapper(func=is_even)'
+
+    assert str(sliced[:3]) == 'Slicer(start=0, stop=3, step=1)'
+    assert repr(sliced[:3]) == 'Slicer(start=0, stop=3, step=1)'
+    assert format(sliced[:3]) == 'Slicer(start=0, stop=3, step=1)'
 
     reducer_str = str(reduced(lambda acc, next: acc + next))
     assert reducer_str == 'Reducer(func=<lambda>, acc=0)'
